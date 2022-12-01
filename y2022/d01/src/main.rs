@@ -28,17 +28,17 @@ impl Iterator for LazyCaloryIter<'_> {
     }
 }
 
-struct TopThreeStroage {
+struct TopThreeStorage {
     values: (i32, i32, i32),
 }
 
-impl Default for TopThreeStroage {
+impl Default for TopThreeStorage {
     fn default() -> Self {
         Self::new()
     }
 }
 
-impl TopThreeStroage {
+impl TopThreeStorage {
     pub fn new() -> Self {
         Self { values: (0, 0, 0) }
     }
@@ -75,7 +75,7 @@ fn main() -> anyhow::Result<()> {
     input.read_to_string(&mut content)?;
 
     let calory_iter = LazyCaloryIter::new(content.lines());
-    let mut top_three = TopThreeStroage::new();
+    let mut top_three = TopThreeStorage::new();
     for sum in calory_iter {
         if sum > top_three.lowest() {
             top_three.store(sum);
