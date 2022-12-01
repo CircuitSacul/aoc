@@ -1,4 +1,4 @@
-use std::{fs, io::Read, str::Lines};
+use std::{fs, io::Read, str::Lines, time};
 
 struct LazyCaloryIter<'a> {
     lines_iter: Lines<'a>,
@@ -70,6 +70,8 @@ impl TopThreeStorage {
 }
 
 fn main() -> anyhow::Result<()> {
+    let start = time::Instant::now();
+
     let mut input = fs::File::open("input.txt")?;
     let mut content = String::new();
     input.read_to_string(&mut content)?;
@@ -85,5 +87,6 @@ fn main() -> anyhow::Result<()> {
     println!("Part 1: Top elf sum: {}", top_three.highest());
     println!("Part 2: Sum of top three: {}", top_three.sum());
 
+    println!("Elapsed: {:?}", start.elapsed());
     Ok(())
 }
