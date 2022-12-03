@@ -1,7 +1,7 @@
-use std::{collections::HashSet, fs::File, io::Read, time::SystemTime};
+use std::{fs::File, io::Read, time::SystemTime};
 
 pub struct Compartment {
-    chars: HashSet<char>,
+    chars: Vec<char>,
 }
 
 impl From<&str> for Compartment {
@@ -16,10 +16,15 @@ pub struct RuckSack(Compartment, Compartment);
 
 impl RuckSack {
     fn shared(&self) -> char {
-        *self.0.chars.intersection(&self.1.chars).next().unwrap()
+        for chr in self.0.chars.iter() {
+            if self.1.chars.contains(chr) {
+                return *chr;
+            }
+        }
+        unreachable!();
     }
 
-    fn joined(mut self) -> HashSet<char> {
+    fn joined(mut self) -> Vec<char> {
         self.0.chars.extend(self.1.chars);
         self.0.chars
     }
@@ -46,12 +51,8 @@ impl Group {
     }
 }
 
-fn get_char_val(chr: char) -> u8 {
-    if chr.is_lowercase() {
-        chr as u8 - (b'a' - 1)
-    } else {
-        chr as u8 - (b'A' - 27)
-    }
+fn get_char_val(chr: char) -> i8 {
+    (chr as i8 - 96).rem_euclid(58)
 }
 
 fn main() {
