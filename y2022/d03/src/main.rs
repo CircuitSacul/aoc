@@ -69,7 +69,6 @@ fn main() {
 
     for (idx, line) in content.lines().enumerate() {
         let rucksack = RuckSack::from(line);
-        dbg!(line);
         total_p1 += get_set_item(rucksack.shared()) as u32;
 
         match idx % 3 {
