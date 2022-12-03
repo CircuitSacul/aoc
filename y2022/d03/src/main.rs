@@ -1,36 +1,28 @@
 use std::{fs::File, io::Read, time::SystemTime};
 
 pub struct Compartment {
-    chars: Vec<char>,
+    chars: u64,
 }
 
 impl From<&str> for Compartment {
     fn from(line: &str) -> Self {
-        Self {
-            chars: line.chars().collect(),
+        let mut chars: u64 = 0;
+        for chr in line.chars().map(get_char_val) {
+            chars |= 1 << chr;
         }
+        Self { chars }
     }
 }
 
 pub struct RuckSack(Compartment, Compartment);
 
 impl RuckSack {
-    fn shared(&self) -> char {
-        for chr in self.0.chars.iter() {
-            if self.1.chars.contains(chr) {
-                return *chr;
-            }
-        }
-        unreachable!();
+    fn shared(&self) -> u64 {
+        self.0.chars & self.1.chars
     }
 
-    fn joined(mut self) -> Vec<char> {
-        self.0.chars.extend(self.1.chars);
-        self.0.chars
-    }
-
-    fn contains(&self, chr: &char) -> bool {
-        self.0.chars.contains(chr) || self.1.chars.contains(chr)
+    fn joined(&self) -> u64 {
+        self.0.chars | self.1.chars
     }
 }
 
@@ -44,15 +36,23 @@ impl From<&str> for RuckSack {
 pub struct Group(RuckSack, RuckSack, RuckSack);
 
 impl Group {
-    fn shared(self) -> char {
-        let mut intersection = self.0.joined();
-        intersection.retain(|e| self.1.contains(e) && self.2.contains(e));
-        intersection.into_iter().next().unwrap()
+    fn shared(self) -> u64 {
+        let first = self.0.joined();
+        let second = self.1.joined();
+        let third = self.2.joined();
+
+        first & second & third
     }
 }
 
+#[inline(always)]
 fn get_char_val(chr: char) -> i8 {
     (chr as i8 - 96).rem_euclid(58)
+}
+
+#[inline(always)]
+fn get_set_item(set: u64) -> u8 {
+    set.trailing_zeros() as u8
 }
 
 fn main() {
@@ -69,7 +69,8 @@ fn main() {
 
     for (idx, line) in content.lines().enumerate() {
         let rucksack = RuckSack::from(line);
-        total_p1 += get_char_val(rucksack.shared()) as u32;
+        dbg!(line);
+        total_p1 += get_set_item(rucksack.shared()) as u32;
 
         match idx % 3 {
             0 => rucksacks.0 = Some(rucksack),
@@ -77,13 +78,13 @@ fn main() {
             2 => {
                 rucksacks.2 = Some(rucksack);
 
-                let chr = Group(
+                let set = Group(
                     std::mem::take(&mut rucksacks.0).unwrap(),
                     std::mem::take(&mut rucksacks.1).unwrap(),
                     std::mem::take(&mut rucksacks.2).unwrap(),
                 )
                 .shared();
-                total_p2 += get_char_val(chr) as u32;
+                total_p2 += get_set_item(set) as u32;
             }
             _ => unreachable!(),
         }
