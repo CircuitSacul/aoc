@@ -64,7 +64,7 @@ fn main() {
 
     let mut total_p1: u32 = 0;
 
-    let mut rucksacks = (None, None, None);
+    let mut rucksacks = (None, None);
     let mut total_p2: u32 = 0;
 
     for (idx, line) in content.lines().enumerate() {
@@ -76,12 +76,10 @@ fn main() {
             0 => rucksacks.0 = Some(rucksack),
             1 => rucksacks.1 = Some(rucksack),
             2 => {
-                rucksacks.2 = Some(rucksack);
-
                 let set = Group(
                     std::mem::take(&mut rucksacks.0).unwrap(),
                     std::mem::take(&mut rucksacks.1).unwrap(),
-                    std::mem::take(&mut rucksacks.2).unwrap(),
+                    rucksack,
                 )
                 .shared();
                 total_p2 += get_set_item(set) as u32;
