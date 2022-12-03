@@ -23,6 +23,10 @@ impl RuckSack {
         self.0.chars.extend(self.1.chars);
         self.0.chars
     }
+
+    fn contains(&self, chr: &char) -> bool {
+        self.0.chars.contains(chr) || self.1.chars.contains(chr)
+    }
 }
 
 impl From<&str> for RuckSack {
@@ -37,9 +41,7 @@ pub struct Group(RuckSack, RuckSack, RuckSack);
 impl Group {
     fn shared(self) -> char {
         let mut intersection = self.0.joined();
-        let one = self.1.joined();
-        let two = self.2.joined();
-        intersection.retain(|e| one.contains(e) && two.contains(e));
+        intersection.retain(|e| self.1.contains(e) && self.2.contains(e));
         intersection.into_iter().next().unwrap()
     }
 }
