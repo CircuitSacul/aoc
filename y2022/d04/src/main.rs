@@ -17,19 +17,13 @@ fn get_range(elf: &str) -> TaskRange {
     }
 }
 
-fn one_contains_other(left: &TaskRange, right: &TaskRange) -> bool {
-    if left.range.contains(&right.left) && left.range.contains(&right.right) {
-        true
-    } else {
-        right.range.contains(&left.left) && right.range.contains(&left.right)
-    }
-}
+fn overlaps(left: TaskRange, right: TaskRange) -> (bool, bool) {
+    let ll = left.range.contains(&right.left);
+    let lr = left.range.contains(&right.right);
+    let rl = right.range.contains(&left.left);
+    let rr = right.range.contains(&left.right);
 
-fn overlaps(left: &TaskRange, right: &TaskRange) -> bool {
-    left.range.contains(&right.left)
-        || left.range.contains(&right.right)
-        || right.range.contains(&left.left)
-        || right.range.contains(&left.right)
+    (ll || lr || rl || rr, (ll && lr) || (rl && rr))
 }
 
 fn main() {
@@ -45,10 +39,11 @@ fn main() {
         let (left, right) = line.split_once(',').unwrap();
         let (left, right) = (get_range(left), get_range(right));
 
-        if overlaps(&left, &right) {
+        let (overlaps, contains) = overlaps(left, right);
+        if overlaps {
             count_2 += 1;
 
-            if one_contains_other(&left, &right) {
+            if contains {
                 count_1 += 1;
             }
         }
