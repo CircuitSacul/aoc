@@ -1,29 +1,29 @@
-use std::{fs::File, io::Read, ops::RangeInclusive, time::Instant};
+use std::{fs::File, io::Read, time::Instant};
 
-pub struct TaskRange {
-    left: i32,
-    right: i32,
-    range: RangeInclusive<i32>,
+pub struct TaskRange(i32, i32);
+
+impl TaskRange {
+    #[inline]
+    fn contains(&self, other: i32) -> bool {
+        self.0 <= other && self.1 >= other
+    }
 }
 
 fn get_range(elf: &str) -> TaskRange {
     let (left, right) = elf.split_once('-').unwrap();
     let (left, right) = (left.parse::<i32>().unwrap(), right.parse::<i32>().unwrap());
 
-    TaskRange {
-        left,
-        right,
-        range: left..=right,
-    }
+    TaskRange(left, right)
 }
 
+#[inline]
 fn overlaps(left: TaskRange, right: TaskRange) -> (bool, bool) {
-    let ll = left.range.contains(&right.left);
-    let lr = left.range.contains(&right.right);
-    let rl = right.range.contains(&left.left);
-    let rr = right.range.contains(&left.right);
+    let l0 = left.contains(right.0);
+    let l1 = left.contains(right.1);
+    let r0 = right.contains(left.0);
+    let r1 = right.contains(left.1);
 
-    (ll || lr || rl || rr, (ll && lr) || (rl && rr))
+    (l0 || r0, (l0 && l1) || (r0 && r1))
 }
 
 fn main() {
