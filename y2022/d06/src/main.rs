@@ -12,21 +12,20 @@ struct RollingWindow<'a, const T: usize> {
 
 impl<'a, const T: usize> RollingWindow<'a, T> {
     fn new(mut chars: Chars<'a>) -> Self {
-        Self {
+        let mut ret = Self {
             window: [(); T].map(|_| chars.next().unwrap()),
             chars,
-        }
+        };
+        ret.window.reverse();
+        ret
     }
 
     fn next_group(&mut self) -> [char; T] {
         let ret = self.window;
 
-        let mut old_window = self.window.into_iter().skip(1);
-        self.window = [(); T].map(|_| {
-            old_window
-                .next()
-                .unwrap_or_else(|| self.chars.next().unwrap())
-        });
+        let next_char = self.chars.next().unwrap();
+        let mut old_window = [next_char].into_iter().chain(self.window.into_iter());
+        self.window = [(); T].map(|_| old_window.next().unwrap());
 
         ret
     }
