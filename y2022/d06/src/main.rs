@@ -19,13 +19,16 @@ impl<'a, const T: usize> RollingWindow<'a, T> {
     }
 
     fn next_group(&mut self) -> [char; T] {
+        let ret = self.window;
+
         let mut old_window = self.window.into_iter().skip(1);
         self.window = [(); T].map(|_| {
             old_window
                 .next()
                 .unwrap_or_else(|| self.chars.next().unwrap())
         });
-        self.window
+
+        ret
     }
 
     fn start_idx(&mut self) -> usize {
@@ -36,7 +39,7 @@ impl<'a, const T: usize> RollingWindow<'a, T> {
                 }
             }
 
-            return idx + 1 + T;
+            return idx + T;
         }
 
         unreachable!();
