@@ -108,5 +108,4 @@ fn main() {
     );
 
     println!("Elapsed: {:?}", start.elapsed());
-    dbg!(fs);
 }
