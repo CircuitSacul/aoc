@@ -1,4 +1,4 @@
-use std::{collections::HashMap, fs, io::Read, time::Instant};
+use std::{fs, io::Read, time::Instant};
 
 #[derive(Clone, Debug)]
 struct Tree {
@@ -25,7 +25,7 @@ impl Tree {
     }
 }
 
-fn iter_forest(map: &mut HashMap<(usize, usize), Tree>, max: (usize, usize)) {
+fn iter_forest(map: &mut [Vec<Tree>], max: (usize, usize)) {
     let mut pointer = (0, 0);
     let mut reverse = false;
 
@@ -33,7 +33,7 @@ fn iter_forest(map: &mut HashMap<(usize, usize), Tree>, max: (usize, usize)) {
     let mut back_row_by_height: Vec<[usize; 10]> = Vec::new();
 
     loop {
-        let mut tree = map.get_mut(&pointer).unwrap();
+        let mut tree = &mut map[pointer.1][pointer.0];
 
         if pointer.0 >= back_row_by_height.len() {
             if reverse {
@@ -95,10 +95,11 @@ pub fn main() {
     let mut content = String::new();
     file.read_to_string(&mut content).unwrap();
 
-    let mut forest = HashMap::new();
+    let mut forest = Vec::new();
     let mut max_y = 0;
     let mut max_x = 0;
     for (y, l) in content.lines().enumerate() {
+        forest.push(Vec::new());
         if y > max_y {
             max_y = y
         };
@@ -106,17 +107,19 @@ pub fn main() {
             if x > max_x {
                 max_x = x
             };
-            forest.insert((x, y), Tree::new(c as usize - 48));
+            forest[y].push(Tree::new(c as usize - 48));
         }
     }
 
     iter_forest(&mut forest, (max_x, max_y));
 
     let mut best = 0;
-    for tree in forest.values() {
-        let val = tree.value();
-        if val > best {
-            best = val;
+    for line in forest {
+        for tree in line {
+            let val = tree.value();
+            if val > best {
+                best = val;
+            }
         }
     }
 
