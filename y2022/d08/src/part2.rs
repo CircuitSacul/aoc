@@ -11,9 +11,6 @@ struct Tree {
 
 impl Tree {
     fn new(height: usize) -> Self {
-        if height > 10 {
-            unreachable!();
-        }
         Self {
             height,
             up: None,
