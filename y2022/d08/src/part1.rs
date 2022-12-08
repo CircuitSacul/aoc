@@ -1,9 +1,4 @@
-use std::{
-    collections::{HashMap, HashSet},
-    fs,
-    io::Read,
-    time::Instant,
-};
+use std::{collections::HashSet, fs, io::Read, time::Instant};
 
 fn char_u32(c: char) -> u32 {
     c as u32 - 48
@@ -11,33 +6,15 @@ fn char_u32(c: char) -> u32 {
 
 fn scan_line(line: impl Iterator<Item = u32>) -> Vec<usize> {
     let mut vl: Vec<usize> = Vec::new();
-    let mut vr: HashMap<u32, Vec<usize>> = HashMap::new();
-
     let mut vl_h: u32 = 0;
-    let mut last_h: u32 = 0;
+
     for (idx, h) in line.enumerate() {
         if h > vl_h || idx == 0 {
             vl_h = h;
             vl.push(idx);
         }
-
-        if h >= last_h {
-            for h in last_h..=h {
-                vr.remove(&h);
-            }
-        }
-        last_h = h;
-
-        if let Some(v) = vr.get_mut(&h) {
-            v.push(idx);
-        } else {
-            vr.insert(h, vec![idx]);
-        }
     }
 
-    for v in vr.into_values() {
-        vl.extend(v);
-    }
     vl
 }
 
@@ -61,6 +38,11 @@ pub fn main() {
                 .into_iter()
                 .map(|v| (v, idx)),
         );
+        visible.extend(
+            scan_line(line.iter().rev().copied())
+                .into_iter()
+                .map(|v| (v, idx)),
+        )
     }
 
     // scan top-to-bottom
@@ -77,6 +59,11 @@ pub fn main() {
     for (idx, line) in rotated_lines.iter().enumerate() {
         visible.extend(
             scan_line(line.iter().copied())
+                .into_iter()
+                .map(|v| (idx, v)),
+        );
+        visible.extend(
+            scan_line(line.iter().rev().copied())
                 .into_iter()
                 .map(|v| (idx, v)),
         );
