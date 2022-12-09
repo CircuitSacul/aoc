@@ -1,4 +1,4 @@
-use std::{collections::HashSet, fs, io::Read, time::Instant};
+use std::{fs, io::Read, time::Instant};
 
 fn main() {
     let start = Instant::now();
@@ -8,8 +8,8 @@ fn main() {
     file.read_to_string(&mut content).unwrap();
 
     let mut knots = [(0, 0); 10];
-    let mut knots_1 = HashSet::new();
-    let mut knots_9 = HashSet::new();
+    let mut knots_1 = fxhash::FxHashSet::with_capacity_and_hasher(10_000, Default::default());
+    let mut knots_9 = fxhash::FxHashSet::with_capacity_and_hasher(10_000, Default::default());
     knots_1.insert((0, 0));
     knots_9.insert((0, 0));
     for (direction, steps) in content
@@ -36,11 +36,6 @@ fn main() {
 
             let mut lead = knots[0];
             for (idx, tail) in knots[1..].iter_mut().enumerate() {
-                let mut visits = match idx {
-                    0 => Some(&mut knots_1),
-                    8 => Some(&mut knots_9),
-                    _ => None,
-                };
                 let diff_0: i32 = lead.0 - tail.0;
                 let diff_1: i32 = lead.1 - tail.1;
 
@@ -48,18 +43,14 @@ fn main() {
                     break;
                 }
 
-                if diff_0 != 0 && diff_1 != 0 {
-                    tail.0 += diff_0.signum();
-                    tail.1 += diff_1.signum();
-                } else if diff_0 != 0 {
-                    debug_assert!(diff_1 == 0);
-                    tail.0 += diff_0.signum();
-                } else if diff_1 != 0 {
-                    debug_assert!(diff_0 == 0);
-                    tail.1 += diff_1.signum();
-                }
+                tail.0 += diff_0.signum();
+                tail.1 += diff_1.signum();
 
-                if let Some(visits) = &mut visits {
+                if let Some(visits) = match idx {
+                    0 => Some(&mut knots_1),
+                    8 => Some(&mut knots_9),
+                    _ => None,
+                } {
                     visits.insert(*tail);
                 }
 
