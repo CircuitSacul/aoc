@@ -1,21 +1,37 @@
 use std::{collections::HashSet, fs, io::Read, time::Instant};
 
-fn char_u32(c: char) -> u32 {
-    c as u32 - 48
-}
-
-fn scan_line(line: impl Iterator<Item = u32>) -> Vec<usize> {
-    let mut vl: Vec<usize> = Vec::new();
-    let mut vl_h: u32 = 0;
-
+fn scan_line(
+    line: impl Iterator<Item = char>,
+    rev: impl Iterator<Item = char>,
+    last_idx: usize,
+    other_axis: usize,
+    rotated: bool,
+    into: &mut HashSet<(usize, usize)>,
+) {
+    let mut vl_h = '0';
     for (idx, h) in line.enumerate() {
         if h > vl_h || idx == 0 {
             vl_h = h;
-            vl.push(idx);
+            let pos = match rotated {
+                true => (other_axis, idx),
+                false => (idx, other_axis),
+            };
+            into.insert(pos);
         }
     }
 
-    vl
+    vl_h = '0';
+    for (idx, h) in rev.enumerate() {
+        if h > vl_h || idx == 0 {
+            let idx = last_idx - idx;
+            vl_h = h;
+            let pos = match rotated {
+                true => (other_axis, idx),
+                false => (idx, other_axis),
+            };
+            into.insert(pos);
+        }
+    }
 }
 
 pub fn main() {
@@ -24,48 +40,35 @@ pub fn main() {
     let mut file = fs::File::open("input.txt").unwrap();
     let mut content = String::new();
     file.read_to_string(&mut content).unwrap();
-    let lines = content
-        .lines()
-        .map(|l| l.chars().map(char_u32).collect::<Vec<_>>())
-        .collect::<Vec<_>>();
 
     let mut visible: HashSet<(usize, usize)> = HashSet::new();
 
     // scan left-to-right
-    for (idx, line) in lines.iter().enumerate() {
-        visible.extend(
-            scan_line(line.iter().copied())
-                .into_iter()
-                .map(|v| (v, idx)),
+    let mut lines = Vec::new();
+    let mut last = 0;
+    for (idx, line) in content.lines().enumerate() {
+        last = line.len() - 1;
+        scan_line(
+            line.chars(),
+            line.chars().rev(),
+            last,
+            idx,
+            false,
+            &mut visible,
         );
-        visible.extend(
-            scan_line(line.iter().rev().copied())
-                .into_iter()
-                .map(|v| (v, idx)),
-        )
+        lines.push(line.chars().into_iter());
     }
 
     // scan top-to-bottom
-    let mut rotated_lines: Vec<Vec<u32>> = Vec::new();
-    for (idx, h) in lines[0].iter().enumerate() {
-        rotated_lines.insert(idx, vec![*h]);
-    }
-    for line in lines[1..].iter() {
-        for (idx, h) in line.iter().enumerate() {
-            rotated_lines[idx].push(*h);
-        }
-    }
-
-    for (idx, line) in rotated_lines.iter().enumerate() {
-        visible.extend(
-            scan_line(line.iter().copied())
-                .into_iter()
-                .map(|v| (idx, v)),
-        );
-        visible.extend(
-            scan_line(line.iter().rev().copied())
-                .into_iter()
-                .map(|v| (idx, v)),
+    for idx in 0..=last {
+        let line: Vec<_> = lines.iter_mut().map(|l| l.next().unwrap()).collect();
+        scan_line(
+            line.iter().copied(),
+            line.iter().copied().rev(),
+            line.len() - 1,
+            idx,
+            true,
+            &mut visible,
         );
     }
 
