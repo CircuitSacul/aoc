@@ -15,7 +15,7 @@ pub fn main() {
 
     let mut lines = content.lines();
     let max_x = lines.next().unwrap().len() - 1;
-    let max_y = lines.count();  // + 1 - 1 == 0
+    let max_y = lines.count(); // + 1 - 1 == 0
 
     let mut tree_values = Vec::with_capacity((max_x + 1) * (max_y + 1));
 

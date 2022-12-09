@@ -2,14 +2,16 @@ use std::{collections::HashSet, fs, io::Read, time::Instant};
 
 fn scan_line(
     line: impl Iterator<Item = char>,
-    rev: impl Iterator<Item = char>,
     last_idx: usize,
     other_axis: usize,
     rotated: bool,
     into: &mut HashSet<(usize, usize)>,
 ) {
+    let mut rev = Vec::with_capacity(last_idx + 1);
+
     let mut vl_h = '0';
     for (idx, h) in line.enumerate() {
+        rev.push(h);
         if h > vl_h || idx == 0 {
             vl_h = h;
             let pos = match rotated {
@@ -21,7 +23,7 @@ fn scan_line(
     }
 
     vl_h = '0';
-    for (idx, h) in rev.enumerate() {
+    for (idx, h) in rev.into_iter().rev().enumerate() {
         if h > vl_h || idx == 0 {
             let idx = last_idx - idx;
             vl_h = h;
@@ -44,32 +46,20 @@ pub fn main() {
     let mut visible: HashSet<(usize, usize)> = HashSet::new();
 
     // scan left-to-right
-    let mut lines = Vec::new();
-    let mut last = 0;
+    let (last_x, last_y) = {
+        let mut lines = content.lines();
+        (lines.next().unwrap().len() - 1, lines.count())
+    };
+    let mut lines = Vec::with_capacity(last_y + 1);
     for (idx, line) in content.lines().enumerate() {
-        last = line.len() - 1;
-        scan_line(
-            line.chars(),
-            line.chars().rev(),
-            last,
-            idx,
-            false,
-            &mut visible,
-        );
+        scan_line(line.chars(), last_x, idx, false, &mut visible);
         lines.push(line.chars().into_iter());
     }
 
     // scan top-to-bottom
-    for idx in 0..=last {
-        let line: Vec<_> = lines.iter_mut().map(|l| l.next().unwrap()).collect();
-        scan_line(
-            line.iter().copied(),
-            line.iter().copied().rev(),
-            line.len() - 1,
-            idx,
-            true,
-            &mut visible,
-        );
+    for idx in 0..=last_x {
+        let line = lines.iter_mut().map(|l| l.next().unwrap());
+        scan_line(line, last_y, idx, true, &mut visible);
     }
 
     println!("Part 1: {}", visible.len());
