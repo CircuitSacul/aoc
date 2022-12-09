@@ -12,25 +12,20 @@ fn main() {
     let mut knots_9 = fxhash::FxHashSet::with_capacity_and_hasher(10_000, Default::default());
     knots_1.insert((0, 0));
     knots_9.insert((0, 0));
+
+    let mut visits_1 = 1;
+    let mut visits_9 = 1;
+
     for (direction, steps) in content
         .lines()
         .map(|l| (l.chars().next().unwrap(), l[2..].parse::<i32>().unwrap()))
     {
-        // move the head
         for _ in 0..steps {
             match direction {
-                'R' => {
-                    knots[0].0 += 1;
-                }
-                'L' => {
-                    knots[0].0 -= 1;
-                }
-                'D' => {
-                    knots[0].1 -= 1;
-                }
-                'U' => {
-                    knots[0].1 += 1;
-                }
+                'R' => knots[0].0 += 1,
+                'L' => knots[0].0 -= 1,
+                'D' => knots[0].1 -= 1,
+                'U' => knots[0].1 += 1,
                 _ => unreachable!(),
             }
 
@@ -46,12 +41,14 @@ fn main() {
                 tail.0 += diff_0.signum();
                 tail.1 += diff_1.signum();
 
-                if let Some(visits) = match idx {
-                    0 => Some(&mut knots_1),
-                    8 => Some(&mut knots_9),
+                if let Some((visits, count)) = match idx {
+                    0 => Some((&mut knots_1, &mut visits_1)),
+                    8 => Some((&mut knots_9, &mut visits_9)),
                     _ => None,
                 } {
-                    visits.insert(*tail);
+                    if visits.insert(*tail) {
+                        *count += 1;
+                    }
                 }
 
                 lead = *tail;
@@ -59,7 +56,7 @@ fn main() {
         }
     }
 
-    println!("Part 1: {}", knots_1.len());
-    println!("Part 2: {}", knots_9.len());
+    println!("Part 1: {visits_1}");
+    println!("Part 2: {visits_9}");
     println!("Elapsed: {:?}", start.elapsed());
 }
